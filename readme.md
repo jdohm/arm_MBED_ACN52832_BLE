@@ -1,13 +1,13 @@
-#ACN52832 arm mbed example
+# ACN52832 arm mbed example
 Pre-Requisites
 --------------
 Install arm mbed cli (with GCC) as described [here](https://os.mbed.com/docs/latest/tools/index.html).
 
 To compile for the ACN52832 Board the following is needed:
 - Target folder (TARGET_ACD52832) containing:
--- PinNames.h
--- device.h
--- PeripheralNames.h
+ - PinNames.h
+ - device.h
+ - PeripheralNames.h
 - custom_targets.json
 - changed mbed_app.json
 This files are already included in this repository. Besides these Files this is a copy of the official arm MBED BLE Heartrate example.
@@ -17,12 +17,12 @@ use 'mbed deploy' to download the mbed-os into the project.
 
 compile using 'mbed compile -m ACD52832 -t GCC_ARM'
 
-Copy the file 'BLE_Heartrate.hex' file from BUILD/ACD52832/GCC_ARM to the JLink drive (usb drive, apears if ACD52832 gets plugged in to the computer).
+Copy the file 'arm_MBED_ACN52832_BLE.hex' file from BUILD/ACD52832/GCC_ARM to the JLink drive (usb drive, apears if ACD52832 gets plugged in to the computer).
 After disconnect and reconnect of the JLink drive copy again (don't ask why, but code runs only after second upload).
 
 
 
-#original Readme begin:
+# Original Readme begin:
 --------------
 # BLE Heart Rate Monitor
 

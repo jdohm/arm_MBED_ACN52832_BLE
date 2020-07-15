@@ -20,6 +20,9 @@
 #include "ble/gap/Gap.h"
 #include "ble/services/HeartRateService.h"
 #include "pretty_printer.h"
+#include "SEGGER_RTT.h"
+#include "SEGGER_RTT.c"
+#include "SEGGER_RTT_printf.c"
 
 const static char DEVICE_NAME[] = "Heartrate";
 
@@ -52,7 +55,7 @@ private:
     /** Callback triggered when the ble initialization process has finished */
     void on_init_complete(BLE::InitializationCompleteCallbackContext *params) {
         if (params->error != BLE_ERROR_NONE) {
-            printf("Ble initialization failed.");
+            SEGGER_RTT_WriteString(0,"Ble initialization failed.\n");
             return;
         }
 
@@ -82,7 +85,7 @@ private:
         );
 
         if (error) {
-            printf("_ble.gap().setAdvertisingParameters() failed\r\n");
+            SEGGER_RTT_WriteString(0,"_ble.gap().setAdvertisingParameters() failed\r\n");
             return;
         }
 
@@ -92,7 +95,7 @@ private:
         );
 
         if (error) {
-            printf("_ble.gap().setAdvertisingPayload() failed\r\n");
+            SEGGER_RTT_WriteString(0,"_ble.gap().setAdvertisingPayload() failed\r\n");
             return;
         }
 
@@ -101,7 +104,7 @@ private:
         error = _ble.gap().startAdvertising(ble::LEGACY_ADVERTISING_HANDLE);
 
         if (error) {
-            printf("_ble.gap().startAdvertising() failed\r\n");
+            SEGGER_RTT_WriteString(0,"_ble.gap().startAdvertising() failed\r\n");
             return;
         }
     }
@@ -123,6 +126,7 @@ private:
 
     void blink(void) {
         _led1 = !_led1;
+    	SEGGER_RTT_WriteString(0,"Segger RTT Test.\n");
     }
 
 private:
