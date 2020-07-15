@@ -24,6 +24,12 @@
 #include "SEGGER_RTT.c"
 #include "SEGGER_RTT_printf.c"
 
+// Additions to add I2C Heartrate Sensor SEN-15219
+// Based on the arm mbed example: https://os.mbed.com/docs/mbed-os/v6.1/apis/i2c.html
+#include "SparkFun_Bio_Sensor_Hub_Library.h"
+
+I2C i2c(I2C_SDA0,I2C_SCL0);
+
 const static char DEVICE_NAME[] = "Heartrate";
 
 static events::EventQueue event_queue(/* event count */ 16 * EVENTS_EVENT_SIZE);
