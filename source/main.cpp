@@ -29,6 +29,14 @@
 #include "SparkFun_Bio_Sensor_Hub_Library.h"
 
 I2C i2c(I2C_SDA0,I2C_SCL0);
+  DigitalOut   resetPin(p26);
+  DigitalInOut mfioPin(p25);
+//SparkFun_Bio_Sensor_Hub bioHub(p26, p25);//resPin, mfioPin
+SparkFun_Bio_Sensor_Hub bioHub(resetPin, mfioPin);//resPin, mfioPin
+
+bioData body;
+
+//I2C end
 
 const static char DEVICE_NAME[] = "Heartrate";
 
@@ -39,7 +47,7 @@ public:
     HeartrateDemo(BLE &ble, events::EventQueue &event_queue) :
         _ble(ble),
         _event_queue(event_queue),
-        _led1(LED1, 1),
+        //_led1(LED1, 1),
         _connected(false),
         _hr_uuid(GattService::UUID_HEART_RATE_SERVICE),
         _hr_counter(100),
@@ -51,8 +59,8 @@ public:
 
         _ble.init(this, &HeartrateDemo::on_init_complete);
 
-        _event_queue.call_every(500, this, &HeartrateDemo::blink);
-        _event_queue.call_every(1000, this, &HeartrateDemo::update_sensor_value);
+        _event_queue.call_every(500ms, this, &HeartrateDemo::blink);
+        _event_queue.call_every(1s, this, &HeartrateDemo::update_sensor_value);
 
         _event_queue.dispatch_forever();
     }
@@ -131,7 +139,7 @@ private:
     }
 
     void blink(void) {
-        _led1 = !_led1;
+        //_led1 = !_led1;
     	SEGGER_RTT_WriteString(0,"Segger RTT Test.\n");
     }
 
@@ -152,7 +160,7 @@ private:
 private:
     BLE &_ble;
     events::EventQueue &_event_queue;
-    DigitalOut _led1;
+    //DigitalOut _led1;
 
     bool _connected;
 
@@ -174,6 +182,13 @@ int main()
 {
     BLE &ble = BLE::Instance();
     ble.onEventsToProcess(schedule_ble_events);
+
+    //mfioPin.write(0);
+  mfioPin.output();
+  mfioPin = 0;
+  ThisThread::sleep_for(100ms);
+    int result = bioHub.begin(i2c);
+    SEGGER_RTT_printf(0,"bioHub returned %d\n",result);
 
     HeartrateDemo demo(ble, event_queue);
     demo.start();
