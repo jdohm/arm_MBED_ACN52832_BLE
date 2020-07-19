@@ -189,6 +189,13 @@ int main()
   ThisThread::sleep_for(100ms);
     int result = bioHub.begin(i2c);
     SEGGER_RTT_printf(0,"bioHub returned %d\n",result);
+    ThisThread::sleep_for(5s);
+    result = bioHub.configBpm(MODE_ONE);
+    SEGGER_RTT_printf(0,"bioHub.configBpm returned %d\n",result);
+    ThisThread::sleep_for(5s);
+    body = bioHub.readBpm();
+    SEGGER_RTT_printf(0,"bioHub.readBPM returned %d\n",body.heartRate);
+    ThisThread::sleep_for(15s);
 
     HeartrateDemo demo(ble, event_queue);
     demo.start();

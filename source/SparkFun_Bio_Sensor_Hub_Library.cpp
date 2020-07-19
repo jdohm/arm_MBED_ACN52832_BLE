@@ -67,8 +67,8 @@ uint8_t SparkFun_Bio_Sensor_Hub::begin( I2C &wirePort ) {
   ThisThread::sleep_for(1s);//1s
   //delay(1000); 
   //pinMode(_mfioPin, INPUT_PULLUP); // To be used as an interrupt later
-  //_mfioPin->mode(PullUp);
-  //_mfioPin->input();
+  _mfioPin->input();
+  _mfioPin->mode(PullUp);
   
   uint8_t responseByte = readByte(READ_DEVICE_MODE, 0x00); // 0x00 only possible Index Byte.
   return responseByte; 
@@ -110,7 +110,6 @@ uint8_t SparkFun_Bio_Sensor_Hub::readSensorHubStatus(){
   
   uint8_t status = readByte(0x00, 0x00); // Just family and index byte. 
   return status; // Will return 0x00
-
 }
 
 // This function sets very basic settings to get sensor and biometric data.
@@ -1233,20 +1232,21 @@ uint8_t SparkFun_Bio_Sensor_Hub::enableWrite(char _familyByte, uint8_t _indexByt
 // indicating what you want to do, a delay, and then a read to confirm positive
 // transmission. 
 // TOD - DONE?
-uint8_t SparkFun_Bio_Sensor_Hub::writeByte(char _familyByte, uint8_t _indexByte,\
-                                                                uint8_t _writeByte)
+uint8_t SparkFun_Bio_Sensor_Hub::writeByte(char _familyByte, char _indexByte,\
+                                                                char _writeByte)
 {
-  _i2cPort->write(_address,&_familyByte,1,false);    
-  _i2cPort->write(_indexByte);    
-  _i2cPort->write(_writeByte); 
-  //_i2cPort->endTransmission(); 
-  ThisThread::sleep_for(ENABLE_CMD_DELAY);
+  char statusByte;
+  char cmd[3];
+  cmd[0] = _familyByte;
+  cmd[1] = _indexByte;
+  cmd[2] = _writeByte;
+
+  _i2cPort->write(_address,cmd,3,false);    
+  ThisThread::sleep_for(CMD_DELAY);
 
   // Status Byte, success or no? 0x00 is a successful transmit
-  //_i2cPort->requestFrom(_address, static_cast<uint8_t>(1)); 
-  uint8_t statusByte = _i2cPort->read(1); 
+  _i2cPort->read(_address,&statusByte,1,false);
   return statusByte; 
-
 }
 
 // This function is the same as the function above and uses the given family, 
@@ -1347,11 +1347,11 @@ uint8_t SparkFun_Bio_Sensor_Hub::readByte(char _familyByte, char _indexByte )
   //statusByte = _i2cPort->read();
   _i2cPort->read(_address,&statusByte,1,false);
   if( statusByte ){// SUCCESS (0x00) - how do I know its 
-    SEGGER_RTT_printf(0,"first read returned: %d\n",statusByte);
+    SEGGER_RTT_printf(0,"statusByte read error: %d\n",statusByte);
     return statusByte; // Return the error, see: READ_STATUS_BYTE_VALUE 
   }
   _i2cPort->read(_address,&returnByte,1,false);
-    SEGGER_RTT_printf(0,"second read returned: %d\n",returnByte);
+    SEGGER_RTT_printf(0,"returnByte read returned: %d\n",returnByte);
   return returnByte; // If good then return the actual byte. 
 }
 

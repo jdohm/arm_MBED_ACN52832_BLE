@@ -641,7 +641,7 @@ class SparkFun_Bio_Sensor_Hub
     // are two steps demonstrated in this function. First a write to the MCU
     // indicating what you want to do, a delay, and then a read to confirm positive
     // transmission. 
-    uint8_t writeByte(char, uint8_t, uint8_t);
+    uint8_t writeByte(char, char, char);
 
     // This function sends is simliar to the one above and sends info to the MAX32664 
     // but takes an additional uint8_t as a paramter. Again there is the write
