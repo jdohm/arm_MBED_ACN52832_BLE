@@ -53,8 +53,23 @@ uint8_t SparkFun_Bio_Sensor_Hub::begin( I2C &wirePort ) {
   _i2cPort = &wirePort;
   //  _i2cPort->begin(); A call to Wire.begin should occur in sketch 
   //  to avoid multiple begins with other sketches.
+  /*_mfioPin->write(1);
+  _resetPin->write(1);
 
+  ThisThread::sleep_for(1s);//1s
+  _mfioPin->write(0);
+  _resetPin->write(0);
+  //ThisThread::sleep_for(1us);
+  //wait_us(1);//500ns
+  _resetPin->write(1);
+  wait_us(40);//40us  
+  _resetPin->write(0);//440us
+  wait_us(440);//440us
   _mfioPin->write(1);
+  ThisThread::sleep_for(10ms);
+  _resetPin->write(1);
+   */
+  
   //digitalWrite(_mfioPin, HIGH);
   _resetPin->write(0);
   //digitalWrite(_resetPin, LOW); 
@@ -67,8 +82,9 @@ uint8_t SparkFun_Bio_Sensor_Hub::begin( I2C &wirePort ) {
   ThisThread::sleep_for(1s);//1s
   //delay(1000); 
   //pinMode(_mfioPin, INPUT_PULLUP); // To be used as an interrupt later
+  
   _mfioPin->input();
-  _mfioPin->mode(PullUp);
+  //new _mfioPin->mode(PullUp);
   
   uint8_t responseByte = readByte(READ_DEVICE_MODE, 0x00); // 0x00 only possible Index Byte.
   return responseByte; 
