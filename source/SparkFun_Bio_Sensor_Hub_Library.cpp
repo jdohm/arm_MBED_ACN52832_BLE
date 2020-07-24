@@ -1410,26 +1410,26 @@ uint8_t* SparkFun_Bio_Sensor_Hub::readFillArray(char _familyByte, uint8_t _index
 {
 
   uint8_t statusByte;
+  char cmd[2];
+  cmd[0] = _familyByte;
+  cmd[1] = _indexByte;
+  char read[arraySize+1];
 
-  //_i2cPort->beginTransmission(_address);
-  //_i2cPort->write(_familyByte);    
-  _i2cPort->write(_address,&_familyByte,1,false);    
-  _i2cPort->write(_indexByte);    
-  //_i2cPort->endTransmission();
+  _i2cPort->write(_address,cmd,2,false);    
   ThisThread::sleep_for(CMD_DELAY);
-  //delay(CMD_DELAY); 
 
+  _i2cPort->read(_address,read,arraySize+1,false);
   //_i2cPort->requestFrom(_address, static_cast<uint8_t>(arraySize + sizeof(statusByte))); 
   statusByte = _i2cPort->read(1); // Got it
-  if( statusByte ){// SUCCESS (0x00)
+  if( read[0] ){// SUCCESS (0x00)
     for(uint8_t i = 0; i < arraySize; i++){
       array[i] = 0; 
     }
     return array; 
   }
-
+  // for succesfull return data
   for(uint8_t i = 0; i < arraySize; i++){
-    array[i] = _i2cPort->read(1); 
+    array[i] = read[i+1];
   }
   return array; // If good then return the array. 
 

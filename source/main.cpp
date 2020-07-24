@@ -125,22 +125,18 @@ private:
 
     void update_sensor_value() {
         if (_connected) {
-            // Do blocking calls or whatever is necessary for sensor polling.
-            // In our case, we simply update the HRM measurement.
-            _hr_counter++;
-
-            //  100 <= HRM bps <=175
-            if (_hr_counter == 175) {
-                _hr_counter = 100;
-            }
-
-            _hr_service.updateHeartRate(_hr_counter);
+            body = bioHub.readBpm();
+            _hr_service.updateHeartRate(body.heartRate);
         }
     }
 
     void blink(void) {
         //_led1 = !_led1;
-    	SEGGER_RTT_WriteString(0,"Segger RTT Test.\n");
+        body = bioHub.readBpm();
+        SEGGER_RTT_printf(0,"Heartrate: %d\n",body.heartRate);
+        SEGGER_RTT_printf(0,"Confidence: %d\n",body.confidence);
+        SEGGER_RTT_printf(0,"Oxygen: %d\n",body.oxygen);
+        SEGGER_RTT_printf(0,"Status: %d\n",body.status);
     }
 
 private:
@@ -186,13 +182,17 @@ int main()
     //mfioPin.write(0);
     int result = bioHub.begin(i2c);
     SEGGER_RTT_printf(0,"bioHub returned %d\n",result);
-    ThisThread::sleep_for(2s);
+    ThisThread::sleep_for(1s);
     result = bioHub.configBpm(MODE_ONE);
     SEGGER_RTT_printf(0,"bioHub.configBpm returned %d\n",result);
     ThisThread::sleep_for(4s);
     body = bioHub.readBpm();
-    SEGGER_RTT_printf(0,"bioHub.readBPM returned %d\n",body.heartRate);
-    ThisThread::sleep_for(15s);
+    SEGGER_RTT_printf(0,"Heartrate: %d\n",body.heartRate);
+    SEGGER_RTT_printf(0,"Confidence: %d\n",body.confidence);
+    SEGGER_RTT_printf(0,"Oxygen: %d\n",body.oxygen);
+    SEGGER_RTT_printf(0,"Status: %d\n",body.status);
+
+    ThisThread::sleep_for(1s);
 
     HeartrateDemo demo(ble, event_queue);
     demo.start();
