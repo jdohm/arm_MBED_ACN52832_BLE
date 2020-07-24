@@ -29,8 +29,8 @@
 #include "SparkFun_Bio_Sensor_Hub_Library.h"
 
 I2C i2c(I2C_SDA0,I2C_SCL0);
-  DigitalOut   resetPin(p26,1);
-  DigitalInOut mfioPin(p25,PIN_OUTPUT,PullUp,1);
+  DigitalOut   resetPin(p26,0);
+  DigitalInOut mfioPin(p25,PIN_OUTPUT,PullUp,0);
 //SparkFun_Bio_Sensor_Hub bioHub(p26, p25);//resPin, mfioPin
 SparkFun_Bio_Sensor_Hub bioHub(resetPin, mfioPin);//resPin, mfioPin
 
@@ -184,15 +184,12 @@ int main()
     ble.onEventsToProcess(schedule_ble_events);
 
     //mfioPin.write(0);
-  mfioPin.output();
-  mfioPin = 0;
-  ThisThread::sleep_for(100ms);
     int result = bioHub.begin(i2c);
     SEGGER_RTT_printf(0,"bioHub returned %d\n",result);
-    ThisThread::sleep_for(5s);
+    ThisThread::sleep_for(2s);
     result = bioHub.configBpm(MODE_ONE);
     SEGGER_RTT_printf(0,"bioHub.configBpm returned %d\n",result);
-    ThisThread::sleep_for(5s);
+    ThisThread::sleep_for(4s);
     body = bioHub.readBpm();
     SEGGER_RTT_printf(0,"bioHub.readBPM returned %d\n",body.heartRate);
     ThisThread::sleep_for(15s);
