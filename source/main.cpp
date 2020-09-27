@@ -13,6 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+//TODO
+// - Umbau fuer Datenlogging wie bei Prototyp 1. (todo suchen)
+// - Benachrichtigung wenn Stressdetektiert implementiere?
+// X Debugging Ueber debugging defina abschaltbar gestalten 
+
+#define CDEBUG
 
 #include <events/mbed_events.h>
 #include <mbed.h>
@@ -28,6 +34,9 @@
 // Based on the arm mbed example: https://os.mbed.com/docs/mbed-os/v6.1/apis/i2c.html
 #include "SparkFun_Bio_Sensor_Hub_Library.h"
 
+//Adding GSR to Bluetooth
+//#include "GSRService.h"
+
 I2C i2c(I2C_SDA0,I2C_SCL0);
   DigitalOut   resetPin(p26,0);
   DigitalInOut mfioPin(p25,PIN_OUTPUT,PullUp,0);
@@ -38,7 +47,8 @@ bioData body;
 
 //I2C end
 
-const static char DEVICE_NAME[] = "Heartrate";
+// TODO Sensorsoeckchen?
+const static char DEVICE_NAME[] = "Prototyp 2";
 
 static events::EventQueue event_queue(/* event count */ 16 * EVENTS_EVENT_SIZE);
 
@@ -58,7 +68,7 @@ public:
         _ble.gap().setEventHandler(this);
 
         _ble.init(this, &HeartrateDemo::on_init_complete);
-
+        //TODO Testdatenlogging mit Intervall von 100ms (wie Prototyp 1)
         _event_queue.call_every(500ms, this, &HeartrateDemo::blink);
         _event_queue.call_every(1s, this, &HeartrateDemo::update_sensor_value);
 
@@ -85,7 +95,7 @@ private:
             ble::advertising_type_t::CONNECTABLE_UNDIRECTED,
             ble::adv_interval_t(ble::millisecond_t(1000))
         );
-
+        //TODO an GSR bzw Sensorsoeckhen Anpassen?!
         _adv_data_builder.setFlags();
         _adv_data_builder.setAppearance(ble::adv_data_appearance_t::GENERIC_HEART_RATE_SENSOR);
         _adv_data_builder.setLocalServiceList(mbed::make_Span(&_hr_uuid, 1));
@@ -125,6 +135,7 @@ private:
 
     void update_sensor_value() {
         if (_connected) {
+            //Todo um andere Sensorwerte erweitern
             body = bioHub.readBpm();
             _hr_service.updateHeartRate(body.heartRate);
         }
@@ -133,10 +144,12 @@ private:
     void blink(void) {
         //_led1 = !_led1;
         body = bioHub.readBpm();
+        #ifdef CDEBUG
         SEGGER_RTT_printf(0,"Heartrate: %d\n",body.heartRate);
         SEGGER_RTT_printf(0,"Confidence: %d\n",body.confidence);
         SEGGER_RTT_printf(0,"Oxygen: %d\n",body.oxygen);
         SEGGER_RTT_printf(0,"Status: %d\n",body.status);
+        #endif
     }
 
 private:
@@ -181,16 +194,22 @@ int main()
 
     //mfioPin.write(0);
     int result = bioHub.begin(i2c);
+    #ifdef CDEBUG
     SEGGER_RTT_printf(0,"bioHub returned %d\n",result);
+    #endif //CDEBUG
     ThisThread::sleep_for(1s);
     result = bioHub.configBpm(MODE_ONE);
+    #ifdef CDEBUG
     SEGGER_RTT_printf(0,"bioHub.configBpm returned %d\n",result);
+    #endif //CDEBUG
     ThisThread::sleep_for(4s);
     body = bioHub.readBpm();
+    #ifdef CDEBUG
     SEGGER_RTT_printf(0,"Heartrate: %d\n",body.heartRate);
     SEGGER_RTT_printf(0,"Confidence: %d\n",body.confidence);
     SEGGER_RTT_printf(0,"Oxygen: %d\n",body.oxygen);
     SEGGER_RTT_printf(0,"Status: %d\n",body.status);
+    #endif //CDEBUG
 
     ThisThread::sleep_for(1s);
 
