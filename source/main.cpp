@@ -95,7 +95,7 @@ private:
 
         ble::AdvertisingParameters adv_parameters(
             ble::advertising_type_t::CONNECTABLE_UNDIRECTED,
-            ble::adv_interval_t(ble::millisecond_t(1000))
+            ble::adv_interval_t(ble::millisecond_t(100))
         );
         //TODO an GSR bzw Sensorsoeckhen Anpassen?!
         _adv_data_builder.setFlags();

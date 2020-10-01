@@ -183,6 +183,7 @@ protected:
 
         void updateGSR(uint16_t gsrCounter)
         {
+            valueBytes[1] = (gsrCounter>>8);
             valueBytes[0] = gsrCounter;
         }
 
