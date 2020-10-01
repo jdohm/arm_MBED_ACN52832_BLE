@@ -50,139 +50,9 @@ bioData body;
 //I2C end
 
 // TODO Sensorsoeckchen?
-const static char DEVICE_NAME[] = "Prototyp 2";
+const static char DEVICE_NAME[] = "Prototyp 2.1";
 
 static events::EventQueue event_queue(/* event count */ 16 * EVENTS_EVENT_SIZE);
-
-class HeartrateDemo : ble::Gap::EventHandler {
-public:
-    HeartrateDemo(BLE &ble, events::EventQueue &event_queue) :
-        _ble(ble),
-        _event_queue(event_queue),
-        //_led1(LED1, 1),
-        _connected(false),
-        _hr_uuid(GattService::UUID_HEART_RATE_SERVICE),
-        _hr_counter(100),
-        _hr_service(ble, _hr_counter, HeartRateService::LOCATION_FINGER),
-        _adv_data_builder(_adv_buffer) { }
-
-    void start() {
-        _ble.gap().setEventHandler(this);
-
-        _ble.init(this, &HeartrateDemo::on_init_complete);
-        //TODO Testdatenlogging mit Intervall von 100ms (wie Prototyp 1)
-        _event_queue.call_every(500ms, this, &HeartrateDemo::blink);
-        _event_queue.call_every(1s, this, &HeartrateDemo::update_sensor_value);
-
-        _event_queue.dispatch_forever();
-    }
-
-private:
-    /** Callback triggered when the ble initialization process has finished */
-    void on_init_complete(BLE::InitializationCompleteCallbackContext *params) {
-        if (params->error != BLE_ERROR_NONE) {
-            SEGGER_RTT_WriteString(0,"Ble initialization failed.\n");
-            return;
-        }
-
-        print_mac_address();
-
-        start_advertising();
-    }
-
-    void start_advertising() {
-        /* Create advertising parameters and payload */
-
-        ble::AdvertisingParameters adv_parameters(
-            ble::advertising_type_t::CONNECTABLE_UNDIRECTED,
-            ble::adv_interval_t(ble::millisecond_t(1000))
-        );
-        //TODO an GSR bzw Sensorsoeckhen Anpassen?!
-        _adv_data_builder.setFlags();
-        _adv_data_builder.setAppearance(ble::adv_data_appearance_t::GENERIC_HEART_RATE_SENSOR);
-        _adv_data_builder.setLocalServiceList(mbed::make_Span(&_hr_uuid, 1));
-        _adv_data_builder.setName(DEVICE_NAME);
-
-        /* Setup advertising */
-
-        ble_error_t error = _ble.gap().setAdvertisingParameters(
-            ble::LEGACY_ADVERTISING_HANDLE,
-            adv_parameters
-        );
-
-        if (error) {
-            SEGGER_RTT_WriteString(0,"_ble.gap().setAdvertisingParameters() failed\r\n");
-            return;
-        }
-
-        error = _ble.gap().setAdvertisingPayload(
-            ble::LEGACY_ADVERTISING_HANDLE,
-            _adv_data_builder.getAdvertisingData()
-        );
-
-        if (error) {
-            SEGGER_RTT_WriteString(0,"_ble.gap().setAdvertisingPayload() failed\r\n");
-            return;
-        }
-
-        /* Start advertising */
-
-        error = _ble.gap().startAdvertising(ble::LEGACY_ADVERTISING_HANDLE);
-
-        if (error) {
-            SEGGER_RTT_WriteString(0,"_ble.gap().startAdvertising() failed\r\n");
-            return;
-        }
-    }
-
-    void update_sensor_value() {
-        if (_connected) {
-            //Todo um andere Sensorwerte erweitern
-            body = bioHub.readBpm();
-            _hr_service.updateHeartRate(body.heartRate);
-        }
-    }
-
-    void blink(void) {
-        //_led1 = !_led1;
-        body = bioHub.readBpm();
-        #ifdef CDEBUG
-        SEGGER_RTT_printf(0,"Heartrate: %d\n",body.heartRate);
-        SEGGER_RTT_printf(0,"Confidence: %d\n",body.confidence);
-        SEGGER_RTT_printf(0,"Oxygen: %d\n",body.oxygen);
-        SEGGER_RTT_printf(0,"Status: %d\n",body.status);
-        #endif
-    }
-
-private:
-    /* Event handler */
-
-    void onDisconnectionComplete(const ble::DisconnectionCompleteEvent&) {
-        _ble.gap().startAdvertising(ble::LEGACY_ADVERTISING_HANDLE);
-        _connected = false;
-    }
-
-    virtual void onConnectionComplete(const ble::ConnectionCompleteEvent &event) {
-        if (event.getStatus() == BLE_ERROR_NONE) {
-            _connected = true;
-        }
-    }
-
-private:
-    BLE &_ble;
-    events::EventQueue &_event_queue;
-    //DigitalOut _led1;
-
-    bool _connected;
-
-    UUID _hr_uuid;
-
-    uint8_t _hr_counter;
-    HeartRateService _hr_service;
-
-    uint8_t _adv_buffer[ble::LEGACY_ADVERTISING_MAX_SIZE];
-    ble::AdvertisingDataBuilder _adv_data_builder;
-};
 
 class GSRLoggerC : ble::Gap::EventHandler {
 public:
@@ -193,7 +63,7 @@ public:
         _connected(false),
         _gsr_uuid(GSRService::GSR_SERVICE_UUID),
         _gsr_counter(100),
-        _gsr_service(ble, _gsr_counter, HeartRateService::LOCATION_FINGER),
+        _gsr_service(ble, _gsr_counter, GSRService::LOCATION_FINGER),
         _adv_data_builder(_adv_buffer) { }
 
     void start() {
@@ -267,7 +137,7 @@ private:
 
     void update_sensor_value() {
         if (_connected) {
-            _gsr_service.updateHeartRate(adc_gsr1.read_u16());
+            _gsr_service.updateGSR(adc_gsr1.read_u16());
         }
     }
 
@@ -306,7 +176,7 @@ private:
     UUID _gsr_uuid;
 
     uint8_t _gsr_counter;
-    HeartRateService _gsr_service;
+    GSRService _gsr_service;
 
     uint8_t _adv_buffer[ble::LEGACY_ADVERTISING_MAX_SIZE];
     ble::AdvertisingDataBuilder _adv_data_builder;
