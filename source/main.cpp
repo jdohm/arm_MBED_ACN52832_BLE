@@ -71,8 +71,8 @@ public:
 
         _ble.init(this, &GSRLoggerC::on_init_complete);
         //TODO Testdatenlogging mit Intervall von 100ms (wie Prototyp 1)
-        _event_queue.call_every(500ms, this, &GSRLoggerC::blink);
-        _event_queue.call_every(1s, this, &GSRLoggerC::update_sensor_value);
+        //_event_queue.call_every(500ms, this, &GSRLoggerC::blink);
+        _event_queue.call_every(100ms, this, &GSRLoggerC::update_sensor_value);
 
         _event_queue.dispatch_forever();
     }
@@ -95,7 +95,7 @@ private:
 
         ble::AdvertisingParameters adv_parameters(
             ble::advertising_type_t::CONNECTABLE_UNDIRECTED,
-            ble::adv_interval_t(ble::millisecond_t(100))
+            ble::adv_interval_t(ble::millisecond_t(500))
         );
         //TODO an GSR bzw Sensorsoeckhen Anpassen?!
         _adv_data_builder.setFlags();
