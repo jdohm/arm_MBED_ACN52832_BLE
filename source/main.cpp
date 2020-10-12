@@ -157,6 +157,8 @@ private:
             _gsr_service.updateGSR(newgsr);
             if (newgsr < 0x0FFF) _stress_service.updatestressState(true);
             else _stress_service.updatestressState(false);
+            _stress_service.updatestressLvl(newgsr);
+            _stress_service.updatestressThreshold(newgsr);
             //x komponente der Beschleunigung anstelle des GSR Werts (fuer Tests)
             //_gsr_service.updateGSR(bma.read().x);
         }
