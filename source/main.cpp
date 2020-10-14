@@ -157,11 +157,25 @@ private:
             _gsr_service.updateGSR(newgsr);
             if (newgsr < 0x0FFF) _stress_service.updatestressState(true);
             else _stress_service.updatestressState(false);
-            _stress_service.updatestressLvl(newgsr);
+            _stress_service.updatestressLvl(calcStresslvl(newgsr));
             _stress_service.updatestressThreshold(newgsr);
             //x komponente der Beschleunigung anstelle des GSR Werts (fuer Tests)
             //_gsr_service.updateGSR(bma.read().x);
         }
+    }
+
+    uint16_t calcStresslvl(uint16_t newgsr){
+        int32_t gsrOut;
+        gsrdiff = oldgsr-newgsr;
+        oldgsr = newgsr;
+        if(gsrdiff<=1000 && gsrdiff>=-1000) gsrdiffBuffer[gsrdiffBCounter]=gsrdiff;
+        else gsrdiffBuffer[gsrdiffBCounter]=0;
+        if(gsrdiffBCounter<9) gsrdiffBCounter++;
+        else gsrdiffBCounter=0;
+        //gsrOut = accumulate(gsrdiffBuffer.begin(),gsrdiffBuffer.end(),0)/(sizeof(gsrdiffBuffer)/sizeof(gsrdiffBuffer[0]));
+        for(int i=0; i<9;i++) gsrOut=gsrOut+gsrdiffBuffer[i];
+        if(gsrOut>=0) return (uint16_t) (gsrOut/(sizeof(gsrdiffBuffer)/sizeof(gsrdiffBuffer[0])));
+        else return 0;
     }
 
     void blink(void) {
@@ -206,6 +220,11 @@ private:
     
     //Stress
     StressService _stress_service;
+    //- CalcStress
+    uint16_t oldgsr;
+    int32_t  gsrdiff;
+    int32_t  gsrdiffBuffer[10];
+    uint8_t  gsrdiffBCounter;
 
     uint8_t _adv_buffer[ble::LEGACY_ADVERTISING_MAX_SIZE];
     ble::AdvertisingDataBuilder _adv_data_builder;
