@@ -31,7 +31,8 @@
 #include "SEGGER_RTT_printf.c"
 
 // Initialise the digital pin LD1 as an output
-DigitalOut led(p24);
+DigitalOut led(p24);//green part of rgb led on ACN52832
+DigitalIn  button(p21);//button on the backside
 
 // Additions to add I2C Heartrate Sensor SEN-15219
 // Based on the arm mbed example: https://os.mbed.com/docs/mbed-os/v6.1/apis/i2c.html
@@ -154,18 +155,22 @@ private:
     void update_sensor_value() {
         if (_connected) {
             uint16_t newgsr = adc_gsr1.read_u16();
+            uint16_t newstresslvl = calcStresslvl(newgsr);
+            //accData = bma.read();
             _gsr_service.updateGSR(newgsr);
-            if (newgsr < 0x0FFF) _stress_service.updatestressState(true);
+            if (newstresslvl > _stress_service.readThreshold() || !button) _stress_service.updatestressState(true);
             else _stress_service.updatestressState(false);
-            _stress_service.updatestressLvl(calcStresslvl(newgsr));
-            _stress_service.updatestressThreshold(newgsr);
+            //_stress_service.updatestressState(ACC_Int1);
+            _stress_service.updatestressLvl(newstresslvl);
+            //_stress_service.updatestressThreshold(newgsr);
             //x komponente der Beschleunigung anstelle des GSR Werts (fuer Tests)
             //_gsr_service.updateGSR(bma.read().x);
+            //_stress_service.updatestressThreshold(accData.x);
         }
     }
 
     uint16_t calcStresslvl(uint16_t newgsr){
-        int32_t gsrOut;
+        int32_t gsrOut=0;
         gsrdiff = oldgsr-newgsr;
         oldgsr = newgsr;
         if(gsrdiff<=1000 && gsrdiff>=-1000) gsrdiffBuffer[gsrdiffBCounter]=gsrdiff;
@@ -173,6 +178,7 @@ private:
         if(gsrdiffBCounter<9) gsrdiffBCounter++;
         else gsrdiffBCounter=0;
         //gsrOut = accumulate(gsrdiffBuffer.begin(),gsrdiffBuffer.end(),0)/(sizeof(gsrdiffBuffer)/sizeof(gsrdiffBuffer[0]));
+        gsrOut=0;
         for(int i=0; i<9;i++) gsrOut=gsrOut+gsrdiffBuffer[i];
         if(gsrOut>=0) return (uint16_t) (gsrOut/(sizeof(gsrdiffBuffer)/sizeof(gsrdiffBuffer[0])));
         else return 0;

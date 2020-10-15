@@ -30,7 +30,7 @@ public:
         ble(_ble), 
         stressState(STRESS_DETECTED_CHARACTERISTIC_UUID, &falseP, GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY), 
         stressLvl(STRESS_LVL_CHARACTERISTIC_UUID, &nullLvl, GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY),
-        stressThreshold(STRESS_THRESHOLD_CHARACTERISTIC_UUID, &defaultThreshold, GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY)
+        stressThreshold(STRESS_THRESHOLD_CHARACTERISTIC_UUID, &Threshold)
     {
         GattCharacteristic *charTable[] = {&stressState, &stressLvl, &stressThreshold};
         GattService         StressService(StressService::STRESS_SERVICE_UUID, charTable, sizeof(charTable) / sizeof(GattCharacteristic *));
@@ -49,6 +49,17 @@ public:
         ble.gattServer().write(stressThreshold.getValueHandle(), (uint8_t *)&newThreshhold, sizeof(uint16_t));
     }
 
+    uint16_t readThreshold(void) {
+        uint8_t ThresholdNow[2];
+        uint16_t length=2*sizeof(uint8_t);
+        uint16_t ThresholdOut;
+        ble.gattServer().read(stressThreshold.getValueHandle(), ThresholdNow, &length);
+        ThresholdOut = uint16_t(ThresholdNow[0]&0x00FF | uint16_t(ThresholdNow[1]&0x00FF)<<8);
+
+        //ble.gattServer().read(ble.getValueHandle(),stressThreshold.getValueHandle(), (uint8_t *)&ThresholdOut, &length);
+        return ThresholdOut;
+    }
+
 private:
     BLE                              &ble;
     ReadOnlyGattCharacteristic<bool>  stressState;
@@ -56,7 +67,7 @@ private:
     ReadWriteGattCharacteristic<uint16_t>  stressThreshold;
     bool    falseP = false;
     uint16_t    nullLvl = 0x0000;
-    uint16_t    defaultThreshold = 0x0000;
+    uint16_t    Threshold = 0x0050;
 };
 
 #endif /* #ifndef __BLE_STRESS_SERVICE_H__ */
