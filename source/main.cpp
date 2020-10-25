@@ -30,8 +30,9 @@
 #include "SEGGER_RTT.c"
 #include "SEGGER_RTT_printf.c"
 
-// Initialise the digital pin LD1 as an output
-DigitalOut led(p24);//green part of rgb led on ACN52832
+//RGB LED: red p22, blue p23, green p24
+//on 1.8V green isn't working, red isn't bright but visible
+DigitalOut led(p22);
 DigitalIn  button(p21);//button on the backside
 
 // Additions to add I2C Heartrate Sensor SEN-15219
@@ -63,7 +64,7 @@ bioData body;
 //I2C end
 
 // TODO Sensorsoeckchen?
-const static char DEVICE_NAME[] = "Prototyp 2.1";
+const static char DEVICE_NAME[] = "Prototyp2 Nr2";
 
 static events::EventQueue event_queue(/* event count */ 16 * EVENTS_EVENT_SIZE);
 
@@ -86,7 +87,7 @@ public:
 
         _ble.init(this, &GSRLoggerC::on_init_complete);
         //TODO Testdatenlogging mit Intervall von 100ms (wie Prototyp 1)
-        //_event_queue.call_every(500ms, this, &GSRLoggerC::blink);//LED ohne Funktion bei 1.8V
+        //_event_queue.call_every(500ms, this, &GSRLoggerC::blink);
         _event_queue.call_every(100ms, this, &GSRLoggerC::update_sensor_value);
 
         _event_queue.dispatch_forever();
@@ -158,8 +159,14 @@ private:
             uint16_t newstresslvl = calcStresslvl(newgsr);
             //accData = bma.read();
             _gsr_service.updateGSR(newgsr);
-            if (newstresslvl > _stress_service.readThreshold() || !button) _stress_service.updatestressState(true);
-            else _stress_service.updatestressState(false);
+            if (newstresslvl > _stress_service.readThreshold() || !button) {
+                _stress_service.updatestressState(true);
+                led = true;
+                }
+            else{
+                _stress_service.updatestressState(false);
+                led = false;
+            } 
             //_stress_service.updatestressState(ACC_Int1);
             _stress_service.updatestressLvl(newstresslvl);
             //_stress_service.updatestressThreshold(newgsr);
